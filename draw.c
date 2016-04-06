@@ -30,6 +30,16 @@ void add_polygon( struct matrix *polygons,
 		  double x0, double y0, double z0, 
 		  double x1, double y1, double z1, 
 		  double x2, double y2, double z2 ) {
+  polygons->m[0][0] = x0;
+  polygons->m[0][1] = x1;
+  polygons->m[0][2] = x2;
+  polygons->m[1][0] = y0;
+  polygons->m[1][1] = y1;
+  polygons->m[1][2] = y2;
+  polygons->m[2][0] = z0;
+  polygons->m[2][1] = z1;
+  polygons->m[2][2] = z1;
+
 }
 
 /*======== void draw_polygons() ==========
