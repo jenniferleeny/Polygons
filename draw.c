@@ -26,20 +26,14 @@ define a single triangle surface.
 04/16/13 13:05:59
 jdyrlandweaver
 ====================*/
-void add_polygon( struct matrix *polygons, 
+void add_polygons( struct matrix *polygons, 
 		  double x0, double y0, double z0, 
 		  double x1, double y1, double z1, 
 		  double x2, double y2, double z2 ) {
-  polygons->m[0][0] = x0;
-  polygons->m[0][1] = x1;
-  polygons->m[0][2] = x2;
-  polygons->m[1][0] = y0;
-  polygons->m[1][1] = y1;
-  polygons->m[1][2] = y2;
-  polygons->m[2][0] = z0;
-  polygons->m[2][1] = z1;
-  polygons->m[2][2] = z1;
-
+  add_point(polygons, x0, y0, z0);
+  add_point(polygons, x1, y1, z1);
+  add_point(polygons, x2, y2, z2);
+  //print_matrix(polygons);
 }
 
 /*======== void draw_polygons() ==========
@@ -55,8 +49,34 @@ triangles
 jdyrlandweaver
 ====================*/
 void draw_polygons( struct matrix *polygons, screen s, color c ) {
-}
+  int i;
+  //Calculating N
+  double Ax, Ay, Az, Bx, By, Bz, Nx, Ny, Nz, Vx, Vy, Vz;
+  for (i = 0; i < polygons->lastcol; i+=3) {
+    //Find A value
+    Ax = polygons->m[0][i + 1] - polygons->m[0][i];
+    Ay = polygons->m[1][i + 1] - polygons->m[1][i];
+    Az = polygons->m[2][i + 1] - polygons->m[2][i];
 
+    //Find B value
+    Bx = polygons->m[0][i + 2] - polygons->m[0][i];
+    By = polygons->m[1][i + 2] - polygons->m[1][i];
+    Bz = polygons->m[2][i + 2] - polygons->m[2][i];
+
+    //calculate N
+    Nx = Ay*Bz - Az*By;
+    Ny = Az*Bx - Ax*Bz;
+    Nz = Ax*By - Ay*Bx;
+    Vx = 0; Vy = 0; Vz = -1;
+    
+    if (Nx*Vx + Ny*Vy + Nz*Vz < 0)  {
+      
+      draw_line(polygons->m[0][i], polygons->m[1][i], polygons->m[0][i + 1], polygons->m[1][i + 1], s, c);
+      draw_line(polygons->m[0][i + 1], polygons->m[1][i + 1], polygons->m[0][i + 2], polygons->m[1][i + 2], s, c);
+      draw_line(polygons->m[0][i + 2], polygons->m[1][i + 2], polygons->m[0][i], polygons->m[1][i], s, c);
+    }
+  }
+}
 
 /*======== void add_sphere() ==========
   Inputs:   struct matrix * points
@@ -77,7 +97,6 @@ void draw_polygons( struct matrix *polygons, screen s, color c ) {
 void add_sphere( struct matrix * points, 
 		 double cx, double cy, double r, 
 		 int step ) {
-
   struct matrix * temp;
   int lat, longt;
   int index;
@@ -100,12 +119,50 @@ void add_sphere( struct matrix * points,
     for ( longt = longStart; longt < longStop; longt++ ) {
       
       index = lat * (num_steps+1) + longt;
-      add_edge( points, temp->m[0][index],
-		temp->m[1][index],
-		temp->m[2][index],
-		temp->m[0][index] + 1,
-		temp->m[1][index] + 1,
-		temp->m[2][index] );
+      
+      if( lat == latStop-1 ){
+	int index2 = latStart * num_steps + longt;
+	add_polygons( points,
+		     temp->m[0][index], temp->m[1][index], temp->m[2][index],
+		     temp->m[0][index2+1], temp->m[1][index2+1], temp->m[2][index2+1],
+		     temp->m[0][index2], temp->m[1][index2], temp->m[2][index2]);
+	add_polygons( points,
+		     temp->m[0][index], temp->m[1][index], temp->m[2][index],
+		     temp->m[0][index+1], temp->m[1][index+1], temp->m[2][index+1],
+		     temp->m[0][index2+1], temp->m[1][index2+1], temp->m[2][index2+1]);
+      }
+      else{
+	add_polygons( points, 
+		     temp->m[0][index], temp->m[1][index], temp->m[2][index],
+		     temp->m[0][index+num_steps+1], temp->m[1][index+num_steps+1], temp->m[2][index+num_steps+1],
+		     temp->m[0][index+num_steps], temp->m[1][index+num_steps], temp->m[2][index+num_steps]);
+	add_polygons( points,
+		     temp->m[0][index], temp->m[1][index], temp->m[2][index],
+		     temp->m[0][index+1], temp->m[1][index+1], temp->m[2][index+1],
+		     temp->m[0][index+num_steps+1], temp->m[1][index+num_steps+1], temp->m[2][index+num_steps+1]);
+      }
+      /*      if (lat!=num_steps-1){
+	//All points except last one before bottom
+	if (longt != longStop-1)
+	  add_polygons(points,temp->m[0][index],temp->m[1][index],temp->m[2][index],  temp->m[0][index+1],temp->m[1][index+1],temp->m[2][index+1],  temp->m[0][index+1+num_steps],temp->m[1][index+1+num_steps],temp->m[2][index+1+num_steps]);
+	//Special case for bottom triangles
+	if (longt == longStop)
+	  add_polygons(points,temp->m[0][index],temp->m[1][index],temp->m[2][index],  temp->m[0][index+1],temp->m[1][index+1],temp->m[2][index+1],  temp->m[0][index+num_steps],temp->m[1][index+num_steps],temp->m[2][index+num_steps]);
+	//Add in second triangle
+	if (longt != 0 || longt != longStop-1)
+	  add_polygons(points,temp->m[0][index],temp->m[1][index],temp->m[2][index], temp->m[0][index+1+num_steps],temp->m[1][index+1+num_steps],temp->m[2][index+1+num_steps], temp->m[0][index+num_steps],temp->m[1][index+num_steps],temp->m[2][index+num_steps]);
+      }
+      //Do the last half slice
+      else{
+	//All points except last one before bottom
+	if (longt != longStop-1)
+	  add_polygons(points,temp->m[0][index],temp->m[1][index],temp->m[2][index],  temp->m[0][index+1],temp->m[1][index+1],temp->m[2][index+1],  temp->m[0][(index+1)%num_steps],temp->m[1][(index+1)%num_steps],temp->m[2][(index+1)%num_steps]);
+	//Special case for bottom triangles
+	if (longt == longStop)
+	  add_polygons(points,temp->m[0][index],temp->m[1][index],temp->m[2][index],  temp->m[0][index+1],temp->m[1][index+1],temp->m[2][index+1],  temp->m[0][index%num_steps],temp->m[1][index%num_steps],temp->m[2][index%num_steps]);
+	if (longt != 0 || longt != longStop-1)
+	  add_polygons(points,temp->m[0][index],temp->m[1][index],temp->m[2][index], temp->m[0][(index+1)%num_steps],temp->m[1][(index+1)%num_steps],temp->m[2][(index+1)%num_steps], temp->m[0][index%num_steps],temp->m[1][index%num_steps],temp->m[2][index%num_steps]);
+	  }*/
     }//end points only
   }
   free_matrix(temp);
