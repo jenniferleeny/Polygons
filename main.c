@@ -30,16 +30,17 @@ int main( int argc, char** argv ) {
   ident(transform_y);
   transform_y = make_rotY(20);
 
-  add_box(edges, 0, 0, 0, 200, 100, 300);
-  matrix_mult(transform, edges);
-  matrix_mult(transform_y, edges);
-  draw_polygons(edges, s, c);
-  display(s);
-  /*  if ( argc == 2 )
+  //add_box(edges, 0, 0, 0, 200, 100, 300);
+  //add_torus(edges, 250, 250, 100, 40, 10);
+  //matrix_mult(transform, edges);
+  //matrix_mult(transform_y, edges);
+  //draw_polygons(edges, s, c);
+  //display(s);
+  if ( argc == 2 )
     parse_file( argv[1], transform, edges, s );
   else
     parse_file( "stdin", transform, edges, s );
-  */
+  
   free_matrix( transform );
   free_matrix( edges );
 }  
