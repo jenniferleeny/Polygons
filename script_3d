@@ -35,6 +35,8 @@ translate
 250 250 0
 apply
 display
+save
+test.png
 #reset sphere, rotate to make it look cool
 ident
 translate
