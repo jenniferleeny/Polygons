@@ -69,7 +69,7 @@ void draw_polygons( struct matrix *polygons, screen s, color c ) {
     Nz = Ax*By - Ay*Bx;
     Vx = 0; Vy = 0; Vz = -1;
     
-    if (Nx*Vx + Ny*Vy + Nz*Vz < 0)  {
+    if (Nx*Vx + Ny*Vy + Nz*Vz <= 0)  {
       
       draw_line(polygons->m[0][i], polygons->m[1][i], polygons->m[0][i + 1], polygons->m[1][i + 1], s, c);
       draw_line(polygons->m[0][i + 1], polygons->m[1][i + 1], polygons->m[0][i + 2], polygons->m[1][i + 2], s, c);
@@ -141,30 +141,8 @@ void add_sphere( struct matrix * points,
 		     temp->m[0][index+1], temp->m[1][index+1], temp->m[2][index+1],
 		     temp->m[0][index+num_steps+1], temp->m[1][index+num_steps+1], temp->m[2][index+num_steps+1]);
       }
-      /*      if (lat!=num_steps-1){
-	//All points except last one before bottom
-	if (longt != longStop-1)
-	  add_polygons(points,temp->m[0][index],temp->m[1][index],temp->m[2][index],  temp->m[0][index+1],temp->m[1][index+1],temp->m[2][index+1],  temp->m[0][index+1+num_steps],temp->m[1][index+1+num_steps],temp->m[2][index+1+num_steps]);
-	//Special case for bottom triangles
-	if (longt == longStop)
-	  add_polygons(points,temp->m[0][index],temp->m[1][index],temp->m[2][index],  temp->m[0][index+1],temp->m[1][index+1],temp->m[2][index+1],  temp->m[0][index+num_steps],temp->m[1][index+num_steps],temp->m[2][index+num_steps]);
-	//Add in second triangle
-	if (longt != 0 || longt != longStop-1)
-	  add_polygons(points,temp->m[0][index],temp->m[1][index],temp->m[2][index], temp->m[0][index+1+num_steps],temp->m[1][index+1+num_steps],temp->m[2][index+1+num_steps], temp->m[0][index+num_steps],temp->m[1][index+num_steps],temp->m[2][index+num_steps]);
-      }
-      //Do the last half slice
-      else{
-	//All points except last one before bottom
-	if (longt != longStop-1)
-	  add_polygons(points,temp->m[0][index],temp->m[1][index],temp->m[2][index],  temp->m[0][index+1],temp->m[1][index+1],temp->m[2][index+1],  temp->m[0][(index+1)%num_steps],temp->m[1][(index+1)%num_steps],temp->m[2][(index+1)%num_steps]);
-	//Special case for bottom triangles
-	if (longt == longStop)
-	  add_polygons(points,temp->m[0][index],temp->m[1][index],temp->m[2][index],  temp->m[0][index+1],temp->m[1][index+1],temp->m[2][index+1],  temp->m[0][index%num_steps],temp->m[1][index%num_steps],temp->m[2][index%num_steps]);
-	if (longt != 0 || longt != longStop-1)
-	  add_polygons(points,temp->m[0][index],temp->m[1][index],temp->m[2][index], temp->m[0][(index+1)%num_steps],temp->m[1][(index+1)%num_steps],temp->m[2][(index+1)%num_steps], temp->m[0][index%num_steps],temp->m[1][index%num_steps],temp->m[2][index%num_steps]);
-	  }*/
-    }//end points only
-  }
+    }
+  } 
   free_matrix(temp);
 }
 
@@ -328,36 +306,42 @@ void generate_torus( struct matrix * points,
 void add_box( struct matrix * points,
 	      double x, double y, double z,
 	      double width, double height, double depth ) {
-
   double x2, y2, z2;
   x2 = x + width;
   y2 = y - height;
   z2 = z - depth;
-
-  add_edge( points, 
-	    x, y, z, 
-	    x, y, z );
-  add_edge( points, 
-	    x, y2, z, 
-	    x, y2, z );
-  add_edge( points, 
-	    x2, y, z, 
-	    x2, y, z );
-  add_edge( points, 
-	    x2, y2, z, 
-	    x2, y2, z );
-  add_edge( points, 
-	    x, y, z2, 
-	    x, y, z2 );
-  add_edge( points, 
-	    x, y2, z2, 
-	    x, y2, z2 );
-  add_edge( points, 
-	    x2, y, z2, 
-	    x2, y, z2 );
-  add_edge( points, 
-	    x2, y2, z2, 
-	    x2, y2, z2 );
+  /*
+  //front
+  add_polygons( points, x, y, z,  x2, y2, z,  x2, y, z);
+  add_polygons( points, x, y, z,  x2, y2, z,  x, y2, z);
+  //right
+  add_polygons( points, x2, y, z,  x2, y2, z2,  x2, y, z2);
+  add_polygons( points,	x2, y, z,  x2, y2, z2,  x2, y2, z);
+  //back face
+  add_polygons( points,	x2, y, z2,  x, y2, z2,  x, y, z2);
+  add_polygons( points,	x2, y, z2,  x, y2, z2,  x2, y2, z2);
+  //left
+  add_polygons( points, x, y, z2,  x, y2, z,  x, y, z);
+  add_polygons( points,	x, y, z2,  x, y2, z,  x, y2, z2);
+  //top
+  add_polygons( points,	x, y, z2,  x2, y, z,  x2, y, z2);
+  add_polygons( points,	x, y, z2,  x2, y, z,  x, y, z);
+  //bottom
+  add_polygons( points,	x, y, z,  x2, y2, z2,  x2, y2, z);
+  add_polygons( points, x, y ,z,  x2, y2, z2,  x, y2, z2);
+  */
+  add_polygons( points, x, y, z, x, y2, z, x2, y2, z );
+  add_polygons( points,	x, y, z, x2, y2, z, x2, y, z);
+  add_polygons( points,	x, y2, z2, x, y, z2, x2, y , z2 );
+  add_polygons( points,	x2, y, z2, x2, y2, z2, x, y2, z2 );
+  add_polygons( points,	x, y, z2, x, y, z, x2, y, z );
+  add_polygons( points,	x2, y, z, x2, y, z2, x, y, z2 );
+  add_polygons( points, x2, y, z, x2, y2, z,  x2, y2, z2 );
+  add_polygons( points,	x2, y2, z2, x2, y, z2, x2, y, z );
+  add_polygons( points, x, y, z2, x, y2, z2, x, y2, z );
+  add_polygons( points, x, y2, z,x, y, z, x, y, z2 );
+  add_polygons( points,	x2, y2, z2, x2, y2, z, x, y2, z );
+  add_polygons( points, x, y2, z, x, y2, z2, x2, y2, z2 );
 }
   
 /*======== void add_circle() ==========

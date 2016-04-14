@@ -20,14 +20,20 @@ int main( int argc, char** argv ) {
   c.green = 0;
   struct matrix *edges;
   struct matrix *transform;
+  struct matrix *transform_y;
 
   edges = new_matrix(4, 4);
   transform = new_matrix(4, 4);
-  //generate_sphere(edges, 0, 0, 100, 10);
-  add_sphere(edges, 250, 250, 100, 10);
+  ident(transform);
+  transform = make_rotX(20);
+  transform_y = new_matrix(4, 4);
+  ident(transform_y);
+  transform_y = make_rotY(20);
+
+  add_box(edges, 0, 0, 0, 200, 100, 300);
+  matrix_mult(transform, edges);
+  matrix_mult(transform_y, edges);
   draw_polygons(edges, s, c);
-  //print_matrix(edges);
-  //draw_lines(edges, s, c);
   display(s);
   /*  if ( argc == 2 )
     parse_file( argv[1], transform, edges, s );
